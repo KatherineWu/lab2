@@ -1,116 +1,127 @@
 var express = require('express');
 //var bodyParser = require('body-parser');
 //var expressSession = require('express-session');
-//var cookieParser = require('cookie-parser');
-//var session = require('express-session'); //express-session
+var cookieParser = require('cookie-parser'),
+    session = require('cookie-session'); //express-session
 var app = express();
 
-//app.use(cookieParser('secret'));
-/*
+app.use(cookieParser('katherine-is-awesome'));
 app.use(session({
-    key: 'app.sess',
-    secret: 'SEKR37'
+    name:"sessionid",
+    keys:['katherine']
 }));
-*/
 
-var session = 0;
+app.disable("etag");
 
 app.get('/', function(req, res){
+    var cookie = req.cookies.sessionid;
+    if(cookie === undefined) {
+	var rand = Math.random().toString();
+	rand = rand.substring(2, rand.length);
+	res.cookie("sessionid", rand, {maxAge:900000, httpOnly:true});
+	console.log("Cookie created", rand);
+    }
+
+    if(req.session.inventory === undefined) {
+console.log("No items in inventory");
+	req.session.inventory = ["laptop"];
+    }
+
     res.status(200);
     res.sendFile(__dirname + "/index.html");
 });
 
-app.get('/user', function(req, res){
-    session += 1;
-    res.send(session);
-    console.log(session);
-});
-
-app.get('/:user/:id', function(req, res){
-	if (req.params.id == "inventory") {
+app.get('/:id', function(req, res){
+    var inventory = getInventory(req.session);
+    if (req.params.id == "inventory") {
+	res.set({'Content-Type': 'application/json'});
+	res.status(200);
+	res.send(inventory);
+	return;
+    }
+    for (var i in campus) {
+	if (req.params.id == campus[i].id) {
 	    res.set({'Content-Type': 'application/json'});
 	    res.status(200);
-	    res.send(inventory);
+	    res.send(campus[i]);
 	    return;
 	}
-	for (var i in campus) {
-		if (req.params.id == campus[i].id) {
-		    res.set({'Content-Type': 'application/json'});
-		    res.status(200);
-		    res.send(campus[i]);
-		    return;
-		}
-	}
-	res.status(404);
-	res.send("not found, sorry");
+    }
+    res.status(404);
+    res.send("not found, sorry");
 });
 
 app.get('/images/:name', function(req, res){
-	res.status(200);
-	res.sendFile(__dirname + "/" + req.params.name);
+    res.status(200);
+    res.sendFile(__dirname + "/" + req.params.name);
 });
 
 app.delete('/:id/:item', function(req, res){
-	for (var i in campus) {
-		if (req.params.id == campus[i].id) {
-		    res.set({'Content-Type': 'application/json'});
-		    var ix = -1;
-		    if (campus[i].what != undefined) {
-					ix = campus[i].what.indexOf(req.params.item);
-		    }
-		    if (ix >= 0) {
-		       res.status(200);
-			inventory.push(campus[i].what[ix]); // stash
-		        res.send(inventory);
-			campus[i].what.splice(ix, 1); // room no longer has this
-			return;
-		    }
-		    res.status(200);
-		    res.send([]);
-		    return;
-		}
+    var inventory = getInventory(req.session);
+    for (var i in campus) {
+	if (req.params.id == campus[i].id) {
+	    res.set({'Content-Type': 'application/json'});
+	    var ix = -1;
+	    if (campus[i].what != undefined) {
+		ix = campus[i].what.indexOf(req.params.item);
+	    }
+	    if (ix >= 0) {
+		res.status(200);
+		inventory.push(campus[i].what[ix]); // stash
+		res.send(inventory);
+		campus[i].what.splice(ix, 1); // room no longer has this
+		return;
+	    }
+	    res.status(200);
+	    res.send([]);
+	    return;
 	}
-	res.status(404);
-	res.send("location not found");
+    }
+    res.status(404);
+    res.send("location not found");
 });
 
 app.put('/:id/:item', function(req, res){
-	for (var i in campus) {
-		if (req.params.id == campus[i].id) {
-				// Check you have this
-				var ix = inventory.indexOf(req.params.item)
-				if (ix >= 0) {
-					dropbox(ix,campus[i]);
-					res.set({'Content-Type': 'application/json'});
-					res.status(200);
-					res.send([]);
-				} else {
-					res.status(404);
-					res.send("you do not have this");
-				}
-				return;
-		}
+    var inventory = getInventory(req.session);
+    for (var i in campus) {
+	if (req.params.id == campus[i].id) {
+	    // Check you have this
+	    var ix = inventory.indexOf(req.params.item)
+	    if (ix >= 0) {
+		dropbox(inventory, ix, campus[i]);
+		res.set({'Content-Type': 'application/json'});
+		res.status(200);
+		res.send([]);
+	    } else {
+		res.status(404);
+		res.send("you do not have this");
+	    }
+	    return;
 	}
-	res.status(404);
-	res.send("location not found");
+    }
+    res.status(404);
+    res.send("location not found");
 });
 
 app.listen(3000);
 
-var dropbox = function(ix,room) {
-	var item = inventory[ix];
-	inventory.splice(ix, 1);	 // remove from inventory
-	if (room.id == 'allen-fieldhouse' && item == "basketball") {
-		room.text	+= " Someone found the ball so there is a game going on!"
-		return;
-	}
-	if (room.what == undefined) {
-		room.what = [];
-	}
-	room.what.push(item);
-}
+var dropbox = function(inventory, ix, room) {
+    var item = inventory[ix];
 
-var inventory = ["laptop"];
+    inventory.splice(ix, 1);	 // remove from inventory
+    if (room.id == 'allen-fieldhouse' && item == "basketball") {
+	room.text += " Someone found the ball so there is a game going on!"
+	return;
+    }
+    if (room.what == undefined) {
+	room.what = [];
+    }
+    room.what.push(item);
+};
+
+var getInventory = function(session) {
+    return session.inventory;
+};
 
 var campus =
     [ { "id": "lied-center",

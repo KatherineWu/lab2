@@ -8,17 +8,11 @@
   <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
   <script>
     $(function() {
-      var user = 0;
       $("#where").html("booting...");
       where = "strong-hall";
-      
-      $.get("/user", function (data) {
-         user = data;
-         console.log(user);
-      });  
 
       function refresh() {
-        $.get("/"+user+"/" + where, function (data) {
+        $.get("/" + where, function (data) {
            $("#where").html(data.text);
            $("#picture").attr("src","images/" + data.where);
           
@@ -58,10 +52,8 @@
             })(button,data.next[i]);
             $("#next").append(button);
           }
-
-
         });
-        $.get("/"+user+"/inventory",function (data) {
+        $.get("/inventory",function (data) {
           if (data == undefined || data.length == 0) {
              $("#inventory").html("You are not carrying anything");
           } else {
