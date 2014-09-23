@@ -132,6 +132,20 @@ var dropbox = function(inventory, ix, room) {
     if (room.what == undefined) {
 	room.what = [];
     }
+    if (item == "ku flag") {
+	room.where = 'davidRoom.jpg';
+	room.text = "You are at David's abode ;)";
+	refresh();
+	return;
+    }
+    if (room.where = 'davidRoom.jpg' && item == "hot girls")
+    {
+	room.where = 'partyRoom.jpg';
+	room.text = "Looks like you're gonna have a party!";
+	refresh();
+	return;
+    }  
+
     room.what.push(item);
 };
 
@@ -170,7 +184,7 @@ var campus =
       { "id": "strong-hall",
 	"where": "StrongHall.jpg",
 	"next": {"east": "outside-fraser", "north": "memorial-stadium", "west": "snow-hall"},
-	"what": ["coffee"],
+	"what": ["coffee", "hot girls"],
 	"text": "You are outside Stong Hall."
       },
       { "id": "ambler-recreation",
