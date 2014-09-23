@@ -1,3 +1,4 @@
+<meta http-equiv="Refresh" content="2">
 <html>
   <body>
   <font size=4><div id="where"></div></font>
@@ -8,8 +9,13 @@
   <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
   <script>
     $(function() {
-      $("#where").html("booting...");
-      where = "strong-hall";
+    $("#where").html("booting...");
+
+    $.get("/location", function (data) {
+        where = data.location;
+        refresh();
+    });
+  
 
       function refresh() {
         $.get("/" + where, function (data) {
@@ -79,7 +85,6 @@
         });
       }
 
-      refresh();
 
     });
   </script>
