@@ -4,6 +4,10 @@ var express = require('express');
 var cookieParser = require('cookie-parser'),
     session = require('cookie-session'); //express-session
 var app = express();
+var fs = require('fs');
+//var obj = JSON.parse(localStorage.getItem('userInfo'));
+
+var filename = "/userInfo.json";
 
 app.use(cookieParser('katherine-is-awesome'));
 app.use(session({
@@ -20,7 +24,8 @@ app.get('/', function(req, res){
 	var rand = Math.random().toString();
 	rand = rand.substring(2, rand.length);
 	res.cookie("sessionid", rand, {maxAge:900000, httpOnly:true});
-	console.log("Cookie created", rand);
+	req.session.id = rand;
+	console.log("Cookie created", req.session.id);
     }
 
     if(req.session.inventory === undefined) {
@@ -41,11 +46,34 @@ app.get('/', function(req, res){
 app.get('/:id', function(req, res){
     var inventory = getInventory(req.session);
     var loc = getLocation(req.session);
+    var file = __dirname + filename;
+ 
+    var userID = getUserID(req.session);
+
     if (req.params.id == "location") {
 	res.set({'Content-Type': 'application/json'});
 	res.status(200);
 	res.send({"location": loc});
 	return;	
+    }
+    if (req.params.id == "userID") {
+	res.set({'Content-Type': 'application/json'});
+	res.status(200);
+
+	if (!haveBB(inventory)) {
+	    var obj = JSON.parse(fs.readFileSync(file, 'utf8'));
+
+	    obj[userID] = [loc, inventory];
+
+	    fs.writeFileSync(file, JSON.stringify(obj));
+
+	    obj = fs.readFileSync(file, 'utf8');
+
+	    console.log(obj);
+	}
+
+	res.send({"user": userID});
+	return;		
     }
     if (req.params.id == "inventory") {
 	res.set({'Content-Type': 'application/json'});
@@ -132,19 +160,6 @@ var dropbox = function(inventory, ix, room) {
     if (room.what == undefined) {
 	room.what = [];
     }
-    if (item == "ku flag") {
-	room.where = 'davidRoom.jpg';
-	room.text = "You are at David's abode ;)";
-	refresh();
-	return;
-    }
-    if (room.where = 'davidRoom.jpg' && item == "hot girls")
-    {
-	room.where = 'partyRoom.jpg';
-	room.text = "Looks like you're gonna have a party!";
-	refresh();
-	return;
-    }  
 
     room.what.push(item);
 };
@@ -158,6 +173,19 @@ var getLocation = function(session) {
 }
 var setLocation = function(session, location) {
     session.location = location;
+}
+
+var getUserID = function(session) {
+    return session.id;
+}
+
+var haveBB = function (inv) {    
+    for (var i in inv) {
+	if (inv[i] === "basketball") {
+	    return true;
+	}
+    }
+    return false;
 }
 
 var campus =

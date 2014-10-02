@@ -1,11 +1,14 @@
-<meta http-equiv="Refresh" content="2">
+<meta http-equiv="Refresh" content="5">
 <html>
   <body>
+  <font size=3><div id="userID"></div></font>
   <font size=4><div id="where"></div></font>
   <img id="picture" src="">
   <font size=3><div id="what"></div></font>
   <font size=3><div id="inventory"></div></font>
   <font size=3><div id="next"></div></font>
+  <br>
+  <font size=3><div id="state"></div></font>
   <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
   <script>
     $(function() {
@@ -16,6 +19,11 @@
         refresh();
     });
   
+    $.get("/userID", function (data) {
+        var tempText = "Your user ID to use in the future: "+data.user;
+        $("#userID").html(tempText);
+       refresh();
+    });
 
       function refresh() {
         $.get("/" + where, function (data) {
@@ -58,6 +66,24 @@
             })(button,data.next[i]);
             $("#next").append(button);
           }
+<!--
+          $("#state").html("Load state: ");
+            textbox = $("<input/>");
+            textbox.type("text");
+            
+            button = $("<button/>");
+            button.text("Load");
+            (function(button,dest) {
+              button.click(function() {
+                //make call to server
+                
+                refresh();
+              });
+            })()
+            $("#state").append(textbox);
+            $("#state").append(button);
+ -->
+
         });
         $.get("/inventory",function (data) {
           if (data == undefined || data.length == 0) {
@@ -84,9 +110,17 @@
           }
         });
       }
-
-
     });
+
+
+   function loadSession() {
+      $("#state").html("dsafsd ");
+   }
   </script>
+  <form>
+    <input type="text" name="textbox" id="textbox" placeholder="Session ID!" />
+    <input type="button" value="Load" name="load" id="load" onclick="loadSession()" />
+
+  </form>
   </body>
 </html>
