@@ -29,7 +29,6 @@ app.get('/', function(req, res){
     }
 
     if(req.session.inventory === undefined) {
-	console.log("No items in inventory");
 	req.session.inventory = ["laptop"];
     }
     if(req.session.location === undefined) {
@@ -80,10 +79,24 @@ app.get('/:id', function(req, res){
 	res.send(inventory);
 	return;
     }
+    if (req.params.id == "visUsers") {
+	res.set({'Content-Type': 'application/json'});
+	res.status(200);
+	res.send(userLoc);
+	return;	
+    }
     for (var i in campus) {
 	if (req.params.id == campus[i].id) {
 	    res.set({'Content-Type': 'application/json'});
 	    res.status(200);
+
+	    var ix = userLoc[loc].indexOf(req.session.id);
+	    userLoc[loc].splice(ix, 1); 
+
+	    userLoc[req.params.id].push(req.session.id);
+
+	    console.log(userLoc);
+
 	    setLocation(req.session, campus[i].id);
 	    res.send(campus[i]);
 	    return;
@@ -208,6 +221,20 @@ var haveBB = function (inv) {
 	}
     }
     return false;
+}
+
+var userLoc = 
+{
+    "lied-center": [],
+    "dole-institute": [],
+    "eaton-hall":[],
+    "snow-hall":[],
+    "strong-hall":[],
+    "ambler-recreation":[],
+    "outside-fraser":[],
+    "spencer-museum":[],
+    "memorial-stadium":[],
+    "allen-fieldhouse":[]
 }
 
 var campus =

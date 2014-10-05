@@ -7,6 +7,7 @@
   <font size=3><div id="what"></div></font>
   <font size=3><div id="inventory"></div></font>
   <font size=3><div id="next"></div></font>
+  <font size=2><div id="visUsers"></div><font>
   <br>
   <font size=3><div id="state"></div></font>
   <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
@@ -68,6 +69,16 @@
           }
           $("#state").html("Load state: ");
         });
+        $.get("/visUsers", function (data) {
+          if (data[where].length > 1) {
+               $("#visUsers").html("Users here: ");
+               for (var i in data[where]) {
+                 var u = data[where][i];
+                 $("#visUsers").append(u +"   ");
+               }
+          }
+        });  
+
         $.get("/inventory",function (data) {
           if (data == undefined || data.length == 0) {
              $("#inventory").html("You are not carrying anything");
