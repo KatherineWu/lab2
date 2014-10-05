@@ -66,24 +66,7 @@
             })(button,data.next[i]);
             $("#next").append(button);
           }
-<!--
           $("#state").html("Load state: ");
-            textbox = $("<input/>");
-            textbox.type("text");
-            
-            button = $("<button/>");
-            button.text("Load");
-            (function(button,dest) {
-              button.click(function() {
-                //make call to server
-                
-                refresh();
-              });
-            })()
-            $("#state").append(textbox);
-            $("#state").append(button);
- -->
-
         });
         $.get("/inventory",function (data) {
           if (data == undefined || data.length == 0) {
@@ -114,13 +97,21 @@
 
 
    function loadSession() {
-      $("#state").html("dsafsd ");
+      var el = document.getElementById('textbox');
+      $.get("/load/"+el.value, function (data) {
+          if (data.exist == false) {
+              $("#exist").html("User ID does not exist in our database ");
+          }
+          refresh();
+      });
    }
   </script>
   <form>
     <input type="text" name="textbox" id="textbox" placeholder="Session ID!" />
     <input type="button" value="Load" name="load" id="load" onclick="loadSession()" />
+    <font size=3><div id="exist"></div></font>
 
+    <br><br>Note: Your user ID will only be saved when you are not carrying the basketball
   </form>
   </body>
 </html>

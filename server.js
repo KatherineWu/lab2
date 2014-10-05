@@ -67,9 +67,8 @@ app.get('/:id', function(req, res){
 
 	    fs.writeFileSync(file, JSON.stringify(obj));
 
-	    obj = fs.readFileSync(file, 'utf8');
-
-	    console.log(obj);
+	    //obj = fs.readFileSync(file, 'utf8');
+	    //console.log(obj);
 	}
 
 	res.send({"user": userID});
@@ -98,6 +97,25 @@ app.get('/:id', function(req, res){
 app.get('/images/:name', function(req, res){
     res.status(200);
     res.sendFile(__dirname + "/" + req.params.name);
+});
+
+app.get('/load/:user', function(req, res) {
+    res.set({'Content-Type': 'application/json'});
+    res.status(200);
+    var file = __dirname + filename;
+    var userExist = false;
+
+    var obj = JSON.parse(fs.readFileSync(file, 'utf8'));
+ 
+    if (obj[req.params.user] !== undefined) {
+	req.session.id = req.params.user;
+	setLocation(req.session, obj[req.params.user][0]);
+	setInventory(req.session, obj[req.params.user][1]);
+	userExist = true;
+    }
+
+    res.send({exist: userExist});
+    return;
 });
 
 app.delete('/:id/:item', function(req, res){
@@ -168,6 +186,10 @@ var getInventory = function(session) {
     return session.inventory;
 };
 
+var setInventory = function(session, inventory) {
+    session.inventory = inventory;
+};
+
 var getLocation = function(session) {
     return session.location;
 }
@@ -213,7 +235,7 @@ var campus =
 	"where": "StrongHall.jpg",
 	"next": {"east": "outside-fraser", "north": "memorial-stadium", "west": "snow-hall"},
 	"what": ["coffee", "hot girls"],
-	"text": "You are outside Stong Hall."
+	"text": "You are outside Strong Hall."
       },
       { "id": "ambler-recreation",
 	"where": "AmblerRecreation.jpg",
